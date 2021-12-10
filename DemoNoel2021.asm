@@ -36,7 +36,7 @@ TpsWaitYeux	equ	10
 
 NbFloc	Equ	100
 
-;	Write	direct	"xmas2021.bin"
+	Write	direct	"xmas2021.bin"
 
 	Nolist
 
@@ -64,11 +64,11 @@ _StartDepack:
 	CALL	SendCrtc
 	LD	HL,PaletteBlack
 	CALL	SetPalette
-	LD	HL,#A000
-	LD	DE,#A001
-	LD	BC,#AFFF
-	LD	(HL),L
-	LDIR
+;	LD	HL,#A000
+;	LD	DE,#A001
+;	LD	BC,#AFFF
+;	LD	(HL),L
+;	LDIR
 
 	LD	HL,XmasSong_ZX0
 	LD	DE,Musique
@@ -79,9 +79,9 @@ _StartDepack:
 	LD	DE,#0200
 	CALL	Depack
 
-	LD	A,#C3
+;	LD	A,#C3
+;	LD	(#38),A
 	LD	HL,NewIrq
-	LD	(#38),A
 	LD	(#39),HL
 	EI
 
