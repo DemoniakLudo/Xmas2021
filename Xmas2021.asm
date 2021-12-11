@@ -37,7 +37,7 @@ TpsWaitYeux	equ	10
 NbFloc	Equ	100
 CoulFlocon	Equ	63
 
-	Write	direct	"xmas2021.bin"
+	;Write	direct	"xmas2021.bin"
 
 	Nolist
 
@@ -886,13 +886,17 @@ CrtcStartScreen
 Message
 ;THE WHOLE IMPACT TEAM
 	DB	"  MAET TCAPMI ELOHW EHT",0
-;WOULD LIKE TO WISHES YOU
-	DB	"UOY SEHSIW OT EKIL DLUOW",0
+;WOULD LIKE TO WISH YOU
+	DB	"   UOY HSIW OT EKIL DLUOW",0
 ;## A MERRY XMAS 2021 ##
 	DB	" #   1202 SAMX YRREM A   #",0
 ;& a Happy New Year 2022 
 	DB	"2202 RAEY WEN YPPAH A &",0
 	DB	"     !!!  ENECS AL KCUF  !!!",0
+	db  	"      EB LLIW 2202 EPOH",0
+	DB	"   !! DORP WEN FO LLUF ",0
+	DB	"    KAINOMED SIRK DIS  ",0
+	DB	"      TSA LLIRD PMC    ",0
 	DB	#FF
 
 	Read	"Animations.asm"

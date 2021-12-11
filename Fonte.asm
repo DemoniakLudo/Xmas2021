@@ -338,28 +338,28 @@ Char_H
 	DB	#6F,#00,#00,#07,#08
 	DB	#06,#00,#00,#03,#00
 Char_I
-	DB	1			; Largeur
-	DB	#06
-	DB	#6F
-	DB	#0F
-	DB	#0F
-	DB	#0F
-	DB	#2F
-	DB	#6F
-	DB	#6F
-	DB	#4F
-	DB	#0F
-	DB	#0F
-	DB	#0F
-	DB	#0F
-	DB	#2F
-	DB	#6F
-	DB	#6F
-	DB	#4F
-	DB	#0F
-	DB	#0F
-	DB	#0F
-	DB	#06
+	DB	2			; Largeur
+	DB	#01,#08
+	DB	#03,#8C
+	DB	#13,#8C
+	DB	#13,#0C
+	DB	#03,#0C
+	DB	#03,#0C
+	DB	#03,#0C
+	DB	#03,#8C
+	DB	#13,#8C
+	DB	#13,#8C
+	DB	#13,#0C
+	DB	#03,#0C
+	DB	#03,#0C
+	DB	#03,#8C
+	DB	#13,#8C
+	DB	#13,#8C
+	DB	#13,#0C
+	DB	#03,#0C
+	DB	#03,#0C
+	DB	#03,#0C
+	DB	#01,#08
 Char_J
 	DB	4			; Largeur
 	DB	#00,#00,#03,#00
