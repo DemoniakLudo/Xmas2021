@@ -679,21 +679,22 @@ endMod2:
 	ADD	HL,DE
 	LD	(IX-5),L
 	LD	(IX-4),H
-	LD	D,A
+	LD	H,A
 	LD	A,14
 	SUB	B
-	LD	E,B				; Sauvegarde registre B
+	LD	L,B				; Sauvegarde registre B
+	LD	DE,#F680
 	LD	B,#F4				; setup PSG register number on PPI port A
 	OUT	(C),A				; Numero du registre
-	LD	BC,#F6C0			; Tell PSG to select register from data on PPI port A
-	OUT	(C),C
-	DB	#ED,#71
+	LD	B,D
+	OUT	(C),B
+	DW	#71ED	; out (c),0
 	LD	B,#F4				; setup register data on PPI port A
-	OUT	(C),D				; Valeur du registre
-	LD	BC,#F680			; Tell PSG to write data on PPI port A into selected register
-	OUT	(C),C
-	DB	#ED,#71
-	LD	B,E				; Restauration registre B
+	OUT	(C),H				; Valeur du registre
+	LD	B,D
+	OUT	(C),E
+	DW	#71ED	; out (c),0
+	LD	B,L				; Restauration registre B
 	RET
 
 ;
@@ -757,7 +758,6 @@ SendCrtc
 	OUTI
 	JR	SendCrtc
 
-
 SetPalette
 	LD	BC,#7F10
 	LD	A,(HL)
@@ -786,99 +786,60 @@ WaitBC
 ; DE = destination
 ;
 Depack
-	ld	bc,#ffff				; preserve default offset 1
-	ld	(dzx0t_last_offset+1),bc
+	ld	bc,#ffff			; preserve default offset 1
+	push	bc
 	inc	bc
-	inc	c
-	scf
-	jr	dzx0t_literals2
-dzx0t_new_offset
-	inc	c					; obtain offset MSB
-	add	a,a
-	jr	nz,dzx0t_new_offset_skip
-	ld	a,(hl)					; load another group of 8 bits
-	inc	hl
-	rla
-dzx0t_new_offset_skip
-	call	nc,dzx0t_elias
-	ex	af,af'					; adjust for negative offset
-	xor	a
+	ld	a,#80
+dzx0s_literals:
+	call	dzx0s_elias			; obtain length
+	ldir					; copy literals
+	add	a,a				; copy from last offset or new offset?
+	jr	c,dzx0s_new_offset
+	call	dzx0s_elias			; obtain length
+dzx0s_copy:
+	ex	(sp),hl				; preserve source,restore offset
+	push	hl				; preserve offset
+	add	hl,de				; calculate destination - offset
+	ldir					; copy from offset
+	pop	hl				; restore offset
+	ex	(sp),hl				; preserve offset,restore source
+	add	a,a				; copy from literals or new offset?
+	jr	nc,dzx0s_literals
+dzx0s_new_offset:
+	call	dzx0s_elias			; obtain offset MSB
+	ld b,a
+	pop	af				; discard last offset
+	xor	a				; adjust for negative offset
 	sub	c
-	ret	z					; check end marker
-	ld	b,a
-	ex	af,af'
-	ld	c,(hl)					; obtain offset LSB
+	RET	z				; Plus d'octets a traiter = fini
+
+	ld	c,a
+	ld	a,b
+	ld	b,c
+	ld	c,(hl)				; obtain offset LSB
 	inc	hl
-	rr	b					; last offset bit becomes first length bit
+	rr	b				; last offset bit becomes first length bit
 	rr	c
-	ld	(dzx0t_last_offset+1),bc		; preserve new offset
-	ld	bc,1					; obtain length
-	call	nc,dzx0t_elias
+	push	bc				; preserve new offset
+	ld	bc,1				; obtain length
+	call	nc,dzx0s_elias_backtrack
 	inc	bc
-dzx0t_copy
-	push	hl					; preserve source
-dzx0t_last_offset
-	ld	hl,0					; restore offset
-	add	hl,de					; calculate destination - offset
-	ldir						; copy from offset
-	pop	hl					; restore source
-	add	a,a					; copy from literals or new offset?
-	jr	c,dzx0t_new_offset
-	inc	c					; obtain length
+	jr	dzx0s_copy
+dzx0s_elias:
+	inc	c				; interlaced Elias gamma coding
+dzx0s_elias_loop:
 	add	a,a
-	jr	nz,dzx0t_literals_skip
-dzx0t_literals2
-	ld	a,(hl)					; load another group of 8 bits
+	jr	nz,dzx0s_elias_skip
+	ld	a,(hl)				; load another group of 8 bits
 	inc	hl
 	rla
-dzx0t_literals_skip
-	call	nc,dzx0t_elias
-	ldir						; copy literals
-	add	a,a					; copy from last offset or new offset?
-	jr	c,dzx0t_new_offset
-	inc	c					; obtain length
-	add	a,a
-	jr	nz,dzx0t_last_offset_skip
-	ld	a,(hl)					; load another group of 8 bits
-	inc	hl
-	rla
-dzx0t_last_offset_skip
-	call	nc,dzx0t_elias
-	jr	dzx0t_copy
-dzx0t_elias
-	add	a,a					; interlaced Elias gamma coding
-	rl	c
-	add	a,a
-	jr	nc,dzx0t_elias
-	ret	nz
-	ld	a,(hl)					; load another group of 8 bits
-	inc	hl
-	rla
-	ret	c
-	add	a,a
-	rl	c
-	add	a,a
-	ret	c
-	add	a,a
-	rl	c
-	add	a,a
-	ret	c
-	add	a,a
-	rl	c
-	add	a,a
-	ret	c
-dzx0t_elias_loop
+dzx0s_elias_skip:
+	ret 	c
+dzx0s_elias_backtrack:
 	add	a,a
 	rl	c
 	rl	b
-	add	a,a
-	jr	nc,dzx0t_elias_loop
-	ret	nz
-	ld	a,(hl)					; load another group of 8 bits
-	inc	hl
-	rla
-	jr	nc,dzx0t_elias_loop
-	ret
+	jr	dzx0s_elias_loop
 
 AdrEcrTrain
 	DW	#44E0,#4CE0,#54E0,#5CE0
@@ -920,9 +881,15 @@ CrtcStartScreen
 
 
 Message
-	DB	"      EGASSEM TSET",0
-	DB	"    T C A P M I    T C A P M I",0
-	DB	"     ENECS AL KCUF",0
+;THE WHOLE IMPACT TEAM
+	DB	"  MAET TCAPMI ELOHW EHT",0
+;WOULD LIKE TO WISHES YOU
+	DB	"UOY SEHSIW OT EKIL DLUOW",0
+;## A MERRY XMAS 2021 ##
+	DB	" #   1202 SAMX YRREM A   #",0
+;& a Happy New Year 2022 
+	DB	"2202 RAEY WEN YPPAH A &",0
+	DB	"          ENECS AL KCUF",0
 	DB	#FF
 
 	Read	"Animations.asm"
@@ -933,14 +900,7 @@ XmassPic
 	list
 _endxmass
 
-	align	256
-AdrEcr equ $
-TabFlocs equ AdrEcr+512
-; structure = 
-; IX+0 = x
-; IX+1 = y
-; IX+2 = inc y
-; IX+3 = memo adr
+
 
 
 TrainFull equ #92A0
@@ -949,3 +909,10 @@ cstPeriodeOffset EQU Musique+4			; Duration of song (number of frame)
 cstCrunchedDataOffset EQU Musique+#10		; Pointer to the array of Buffer Data offsets (14 words)
 RegVars Equ Musique+3484
 SpriteLettres equ #C000
+AdrEcr equ #A000
+TabFlocs equ AdrEcr+512
+; structure = 
+; IX+0 = x
+; IX+1 = y
+; IX+2 = inc y
+; IX+3 = memo adr

@@ -4,9 +4,9 @@
 
 ; Lettre = Largeurx21
 SpriteLettres
+	DW	Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_Candy,Lettre_SPC,Lettre_SPC,0,Lettre_SPC
 	DW	Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC
-	DW	Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC
-	DW	Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC
+	DW	Lettre_0,Lettre_1,Lettre_2,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC
 	DW	Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC,Lettre_SPC
 	DW	Lettre_SPC,Lettre_A,Lettre_B,Lettre_C,Lettre_D,Lettre_E,Lettre_F,Lettre_G,Lettre_H
 	DW	Lettre_I,Lettre_J,Lettre_K,Lettre_L,Lettre_M,Lettre_N,Lettre_O,Lettre_P,Lettre_Q
@@ -15,6 +15,98 @@ SpriteLettres
 Lettre_SPC
 	DB	2			; Largeur
 	DS	42,#00		; Espace
+Lettre_0
+	DB	5
+	DB	#00,#03,#0F,#08,#00
+	DB	#00,#0F,#1F,#8C,#00
+	DB	#01,#EF,#3F,#CF,#00
+	DB	#03,#CF,#0F,#EF,#08
+	DB	#13,#8E,#00,#2F,#08
+	DB	#07,#8C,#00,#0F,#0C
+	DB	#07,#08,#01,#0F,#0C
+	DB	#0F,#08,#03,#1F,#0E
+	DB	#0F,#00,#17,#1D,#8E
+	DB	#4F,#00,#2F,#19,#CE
+	DB	#6F,#01,#0F,#01,#CE
+	DB	#6F,#13,#0E,#01,#4E
+	DB	#6F,#27,#0C,#01,#0E
+	DB	#3F,#0F,#08,#03,#0E
+	DB	#07,#0F,#00,#03,#0C
+	DB	#07,#0E,#00,#37,#0C
+	DB	#03,#0E,#00,#7F,#08
+	DB	#03,#8F,#0F,#7F,#08
+	DB	#01,#FF,#8F,#6F,#00
+	DB	#00,#3F,#0F,#0E,#00
+	DB	#00,#03,#0F,#08,#00
+Lettre_1
+	DB	3
+	DB	#00,#03,#0E
+	DB	#00,#17,#CE
+	DB	#00,#3F,#8E
+	DB	#01,#0F,#0E
+	DB	#03,#0F,#0E
+	DB	#17,#0F,#4E
+	DB	#37,#0D,#CE
+	DB	#27,#09,#CE
+	DB	#07,#01,#8E
+	DB	#06,#01,#0E
+	DB	#00,#01,#0E
+	DB	#00,#01,#0E
+	DB	#00,#01,#0E
+	DB	#00,#01,#4E
+	DB	#00,#01,#CE
+	DB	#00,#01,#CE
+	DB	#00,#01,#8E
+	DB	#00,#01,#0E
+	DB	#00,#01,#0E
+	DB	#00,#01,#0E
+	DB	#00,#00,#0C
+Lettre_2
+	DB	5
+	DB	#00,#0F,#0F,#0F,#0C
+	DB	#01,#0F,#0F,#0F,#0E
+	DB	#03,#0F,#EF,#1F,#CF
+	DB	#07,#9F,#CF,#3F,#8F
+	DB	#37,#8F,#0F,#0F,#0F
+	DB	#37,#0F,#00,#0F,#2F
+	DB	#07,#0E,#00,#07,#4E
+	DB	#03,#0C,#00,#0F,#0C
+	DB	#00,#00,#01,#4F,#08
+	DB	#00,#00,#03,#CF,#00
+	DB	#00,#00,#17,#CE,#00
+	DB	#00,#01,#1F,#8C,#00
+	DB	#00,#03,#0F,#08,#00
+	DB	#00,#0F,#0F,#00,#00
+	DB	#00,#0F,#0E,#00,#00
+	DB	#01,#2F,#0E,#01,#0E
+	DB	#01,#6F,#0F,#03,#0F
+	DB	#03,#EF,#0F,#0F,#2F
+	DB	#03,#0F,#0F,#0F,#6F
+	DB	#03,#0F,#3F,#CF,#4F
+	DB	#01,#0F,#7F,#8F,#0F
+Lettre_Candy
+	DB	5
+	DB	#00,#00,#00,#00,#00
+	DB	#03,#00,#00,#00,#00
+	DB	#07,#08,#00,#00,#00
+	DB	#07,#08,#00,#00,#00
+	DB	#07,#08,#00,#00,#00
+	DB	#27,#08,#00,#00,#00
+	DB	#37,#08,#00,#00,#00
+	DB	#37,#08,#00,#00,#00
+	DB	#17,#08,#00,#00,#00
+	DB	#07,#08,#00,#00,#00
+	DB	#07,#08,#00,#00,#00
+	DB	#07,#08,#00,#00,#00
+	DB	#07,#08,#00,#00,#00
+	DB	#27,#08,#00,#07,#00
+	DB	#37,#08,#00,#27,#08
+	DB	#37,#08,#00,#37,#08
+	DB	#17,#8C,#00,#17,#08
+	DB	#03,#0E,#00,#0F,#00
+	DB	#01,#0F,#0F,#8F,#00
+	DB	#01,#0F,#7F,#8E,#00
+	DB	#00,#07,#EF,#0C,#00
 Lettre_A
 	DB	5			; Largeur
 	DB	#00,#0F,#0F,#08,#00
