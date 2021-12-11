@@ -35,6 +35,7 @@ TpsNextYeux	equ	15
 TpsWaitYeux	equ	10
 
 NbFloc	Equ	100
+CoulFlocon	Equ	63
 
 	Write	direct	"xmas2021.bin"
 
@@ -44,7 +45,7 @@ XmasSong_ZX0
 	incbin	"Fichiers\xmassong.zx0"
 
 SantaPic
-	Read	"Santa.asm"
+	Read	"SantaPic_zx0.asm"
 
 Lettres_ZX0
 	incbin	"Fichiers\lettres.zx0"
@@ -55,7 +56,7 @@ TrainFull_ZX0
 	List
 
 	RUN	$
-_StartDepack:
+_StartDemo
 	DI
 	LD	BC,#7F8C
 	OUT	(C),C
@@ -96,9 +97,8 @@ _StartDepack:
 	CALL	SetPalette
 
 ;
-; Calcul des adresses ecran
+; Calcul des adresses ecran pour affichage flocons
 ;
-
 	LD	DE,AdrEcr
 	LD	HL,#C000
 Loop:	LD	A,L
@@ -112,12 +112,9 @@ Loop:	LD	A,L
 	JR	NC,NextAdr
 	LD	BC,#C060
 	ADD	HL,BC
-
 NextAdr
 	INC	E
 	JR	NZ,Loop
-
-
 ;
 ; Initialisation des flocons
 ;
@@ -151,7 +148,10 @@ Init2
 	LD	(IX+0),A			; Position X
 	LD	A,D
 	LD	(IX+1),A			; Position Y
-	LD	A,1
+	LD	A,H
+	AND	3
+	INC	A
+;	LD	A,2
 	LD	(IX+2),A			; Vitesse descente
 	LD	A,#FF
 	LD	(IX+3),A			; Octet memorise (#FF=aucun)
@@ -215,8 +215,11 @@ SetNewPosX
 	EX	DE,HL
 	ADD	HL,BC
 	LD	A,(HL)
+	CP	CoulFlocon
+	JR	Z,NoFloc
 	LD	(IX+3),A
-	LD	(HL),15
+NoFloc
+	LD	(HL),CoulFlocon
 	EX	DE,HL
 	INC	IX
 	INC	IX
@@ -863,7 +866,7 @@ PaletteBlack
 XmassPaletteFadeMid
 	DB	Basic00,Basic00,Basic03,Basic00,Basic00,Basic00,Basic03,Basic03,Basic06,Basic06,Basic13,Basic00,Basic00,Basic00,Basic00,Basic00
 XmassPaletteOk
-	DB	Basic00,Basic03,Basic06,Basic09,Basic12,Basic13,Basic15,Basic16,Basic24,Basic25,Basic26,Basic00,Basic00,Basic00,Basic00,Basic00
+	DB	Basic00,Basic03,Basic06,Basic09,Basic12,Basic13,Basic15,Basic16,Basic24,Basic25,Basic26,Basic00,Basic00,Basic00,Basic26,Basic00
 
 SantaPaletteFadeMid
 	DB	Basic00,Basic00,Basic03,Basic13,Basic00,Basic06,Basic06,Basic12,Basic12,Basic00,Basic01,Basic00,Basic00,Basic07,Basic01,Basic10
@@ -889,20 +892,20 @@ Message
 	DB	" #   1202 SAMX YRREM A   #",0
 ;& a Happy New Year 2022 
 	DB	"2202 RAEY WEN YPPAH A &",0
-	DB	"          ENECS AL KCUF",0
+	DB	"     !!!  ENECS AL KCUF  !!!",0
 	DB	#FF
 
 	Read	"Animations.asm"
 
 	nolist
 XmassPic
-	Read	"XmassPic.asm"
+	Read	"XmassPic_zx0.asm"
 	list
 _endxmass
 
-
-
-
+;
+; Constantes - adresses de décompactage
+;
 TrainFull equ #92A0
 Musique equ TrainFull+4440
 cstPeriodeOffset EQU Musique+4			; Duration of song (number of frame)
@@ -911,7 +914,7 @@ RegVars Equ Musique+3484
 SpriteLettres equ #C000
 AdrEcr equ #A000
 TabFlocs equ AdrEcr+512
-; structure = 
+; structure flocons = 
 ; IX+0 = x
 ; IX+1 = y
 ; IX+2 = inc y
