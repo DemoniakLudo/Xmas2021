@@ -1,5 +1,4 @@
-	ORG	#5C00
-
+; Couleurs Gate-Array
 Basic00	equ #54
 Basic01	equ #44
 Basic02	equ #55
@@ -29,29 +28,45 @@ Basic25	equ #43
 Basic26	equ #4B
 
 FastCopy	equ	0
-TpsWaitMessage	equ	#100
-TpsWaitBougie	equ	10
-TpsNextYeux	equ	15
-TpsWaitYeux	equ	10
+TpsWaitMessage	equ	#100			; Temps avant repassage du train
+TpsWaitBougie	equ	10			; Delai animation bougie
+TpsNextYeux	equ	15			; Delai animation yeux
+TpsWaitYeux	equ	10			; Temps entre chaque anim yeux
 
-NbFloc	Equ	100
-CoulFlocon	Equ	63
+NbFloc	Equ	100				; Nbre de flocons sur image intro
+CoulFlocon	Equ	63			; Couleur flocon (octet)
 
-	;Write	direct	"xmas2021.bin"
+TexteSens	equ	#800			; Adresse du texte "inverse"
+
+; Constantes - adresses de decompactage
+TrainFull equ #92A0				; Adresse gros sprite train
+Musique equ TrainFull+4440			; Adresse musique
+cstPeriodeOffset EQU Musique+4			; Duration of song (number of frame)
+cstCrunchedDataOffset EQU Musique+#10		; Pointer to the array of Buffer Data offsets (14 words)
+RegVars Equ Musique+3484			; Decompactage registres PSG
+SpriteLettres equ #C000				; Adresse de la fonte
+AdrEcr equ #A000				; Adresse memoire ecran
+TabFlocs equ AdrEcr+512				; Adresse des flocons
+; structure flocons = 
+; IX+0 = x
+; IX+1 = y
+; IX+2 = inc y
+; IX+3 = memo adr
+
+	ORG	#5C00
+
+;	Write	direct	"xmas2021.bin"
 
 	Nolist
 
 XmasSong_ZX0
 	incbin	"Fichiers\xmassong.zx0"
-
 SantaPic
 	Read	"SantaPic_zx0.asm"
-
 Lettres_ZX0
-	incbin	"Fichiers\lettres.zx0"
-
+	Read	"Fonte_zx0.asm"
 TrainFull_ZX0
-	incbin	"Fichiers\TrainFull.zx0"
+	Read	"TrainFull_zx0.asm"
 
 	List
 
@@ -96,9 +111,7 @@ _StartDemo
 	LD	HL,XmassPaletteOk
 	CALL	SetPalette
 
-;
 ; Calcul des adresses ecran pour affichage flocons
-;
 	LD	DE,AdrEcr
 	LD	HL,#C000
 Loop:	LD	A,L
@@ -115,9 +128,7 @@ Loop:	LD	A,L
 NextAdr
 	INC	E
 	JR	NZ,Loop
-;
 ; Initialisation des flocons
-;
 	LD	IX,TabFlocs
 	LD	B,NbFloc
 	LD	DE,0
@@ -151,7 +162,6 @@ Init2
 	LD	A,H
 	AND	3
 	INC	A
-;	LD	A,2
 	LD	(IX+2),A			; Vitesse descente
 	LD	A,#FF
 	LD	(IX+3),A			; Octet memorise (#FF=aucun)
@@ -160,10 +170,7 @@ Init2
 	INC	IX
 	INC	IX
 	DJNZ	Random
-
-;
 ; Affichage des flocons
-;
 	LD	HL,#22A
 LoopDisplay
 	LD	B,#F5
@@ -179,7 +186,7 @@ DisplayFloc
 	EX	AF,AF'
 	LD	A,(IX+3)
 	INC	A
-	JR	Z,NoRestore
+	JR	Z,NoRestore			; Rien a restaurer
 	LD	C,(IX+0)
 	LD	L,(IX+1)
 	LD	E,(HL)
@@ -189,7 +196,7 @@ DisplayFloc
 	EX	DE,HL
 	ADD	HL,BC
 	LD	A,(IX+3)
-	LD	(HL),A
+	LD	(HL),A				; Restaurer ancienne valeur
 	EX	DE,HL
 NoRestore
 	LD	A,(IX+1)
@@ -198,14 +205,14 @@ NoRestore
 	JR	C,SetNewPosY
 	XOR	A
 SetNewPosY
-	LD	(IX+1),A
+	LD	(IX+1),A			; Nouvelle position Y
 	LD	A,(IX+0)
 	INC	A
 	CP	96
 	JR	C,SetNewPosX
 	XOR	A
 SetNewPosX
-	LD	(IX+0),A
+	LD	(IX+0),A			; Nouvelle position X
 	LD	C,A
 	LD	L,(IX+1)
 	LD	E,(HL)
@@ -214,12 +221,12 @@ SetNewPosX
 	DEC	H
 	EX	DE,HL
 	ADD	HL,BC
-	LD	A,(HL)
+	LD	A,(HL)				; Octet a sauver
 	CP	CoulFlocon
 	JR	Z,NoFloc
-	LD	(IX+3),A
+	LD	(IX+3),A			; Sauver octet
 NoFloc
-	LD	(HL),CoulFlocon
+	LD	(HL),CoulFlocon			; Ecrire flocon
 	EX	DE,HL
 	INC	IX
 	INC	IX
@@ -227,13 +234,13 @@ NoFloc
 	INC	IX
 	EX	AF,AF'
 	DEC	A
-	JR	NZ,DisplayFloc
+	JR	NZ,DisplayFloc			; Reboucler pour tous les flocons
 	POP	HL
-	DEC	HL
+	DEC	HL				; Temps d'affichage
 	LD	A,H
 	OR	L
 	JR	NZ,LoopDisplay
-
+; Effacer les flocons avant le "palette fade"
 	LD	HL,AdrEcr
 	LD	IX,TabFlocs
 	LD	A,NbFloc
@@ -258,11 +265,11 @@ ClearFloc
 	EX	AF,AF'
 	DEC	A
 	JR	NZ,ClearFloc
-
+; Decompacter sprtie du trin
 	LD	HL,TrainFull_ZX0
 	LD	DE,TrainFull
 	CALL	Depack
-
+; Fade palette
 	LD	HL,XmassPaletteFadeMid
 	CALL	SetPalette
 	LD	HL,PaletteBlack
@@ -273,11 +280,12 @@ ClearFloc
 	CALL	SetPalette
 	LD	HL,SantaPaletteOk
 	CALL	SetPalette
-
+; Decompacter fonte
 	LD	HL,Lettres_ZX0
 	LD	DE,SpriteLettres
 	CALL	Depack
 
+; Boucle principale demo
 DemoLoop
 	LD	B,#F5
 WaitVBL
@@ -307,7 +315,6 @@ PosBougie2
 	LD	HL,DataBougie
 	CALL	DrawAnim
 EndBougie
-
 ; Anim yeux
 	LD	A,(PosYeux+1)
 	AND	A
@@ -338,6 +345,7 @@ PosYeux2
 	LD	HL,DataYeux
 	CALL	DrawAnim
 EndYeux
+; Anim Train
 	LD	A,40
 	LD	(DrawTrainNbCol+1),A
 	ADD	A,A
@@ -356,6 +364,7 @@ PosxTrain
 TestEndTrain
 	CP	#FF
 	JR	NZ,NextPos
+; Attente avant nouveau passage du train
 WaitMessage
 	LD	HL,TpsWaitMessage
 	DEC	HL
@@ -365,15 +374,36 @@ WaitMessage
 	JP	NZ,DemoLoop
 	LD	HL,TpsWaitMessage
 	LD	(WaitMessage+1),HL
+; Changement message
 	LD	HL,(PosMessage+1)
 	LD	A,(HL)
 	AND	A
 	JR	NZ,SetMessage
+PosReelMessage
+	LD	HL,Message
 	INC	HL
 	LD	A,(HL)
 	CP	#FF
-	JR	NZ,SetMessage
+	JR	NZ,CopyInverse
 	LD	HL,Message
+	LD	(PosReelMessage+1),HL
+; Mettre le message dans l'ordre d'affichage (inverse)
+CopyInverse
+	INC	HL
+	LD	A,(HL)
+	AND	A				; Fin du message ?
+	JR	NZ,CopyInverse
+	LD	(PosReelMessage+1),HL
+	DEC	HL				; Dernier caractere du message=premier a afficher
+	LD	DE,TexteSens
+CopyMessage
+	LD	A,(HL)
+	LD	(DE),A				; Copier
+	INC	DE
+	DEC	HL
+	AND	A				; Jusqu'a retrouver le 0 du message precedent
+	JR	NZ,CopyMessage
+	LD	HL,TexteSens
 SetMessage
 	LD	(PosMessage+1),HL
 	LD	A,135
@@ -382,7 +412,7 @@ NextPos
 	JP	DemoLoop
 
 ;
-; Affiche petite animation
+; Affiche petite animation (yeux ou bougie)
 ;
 DrawAnim
 	LD	(OffsetAnim+1),A
@@ -413,12 +443,11 @@ CalcPosOctet
 ; Affichage message
 ;
 DrawMessage
-InLettre
-	LD	A,0
+	LD	A,0					; Position dans la lettre
 	DEC	A
 	JP	P,DrawLettre			; Dessine la lettre
 PosMessage
-	LD	HL,Message
+	LD	HL,TexteSens
 	LD	A,(HL)
 	AND	A
 	RET	Z
@@ -435,15 +464,15 @@ PosMessage
 	LD	D,(HL)
 	LD	A,(DE)				; Taille lettre
 	INC	DE
-	LD	(InLettre+1),A
+	LD	(DrawMessage+1),A
 	DEC	A
 	LD	(TailleLettre+1),A
 	EX	DE,HL
 	LD	(AdrLettre+1),HL
 DrawLettre
-	LD	A,(InLettre+1)
+	LD	A,(DrawMessage+1)
 	DEC	A
-	LD	(InLettre+1),A
+	LD	(DrawMessage+1),A
 	LD	C,A
 AdrLettre
 	LD	HL,0
@@ -471,7 +500,7 @@ TailleLettre	LD	C,0
 	RET
 
 ;
-; A = posx du train
+; Affichage du train (A = posx du train)
 ;
 DrawTrain
 	LD	E,A			; E = X
@@ -564,7 +593,7 @@ DrawTrainAddDecal
 	RET
 
 ;
-; Player
+; Player musique
 ;
 InitPlayer
 	LD	BC,#F782			; 8255 Control port
@@ -584,7 +613,7 @@ initRegVars2:
 	LD	(IY-3),L
 	LD	(IY-2),H
 	INC	IX
-	INC IX
+	INC	IX
 	PUSH	IY
 	POP	HL
 	LD	(IY-5),L
@@ -882,21 +911,17 @@ CrtcFullScreen
 CrtcStartScreen
 	DB	1,#30,2,#32,6,#15,7,#21,12,#30,13,0,0
 
-
 Message
-;THE WHOLE IMPACT TEAM
-	DB	"  MAET TCAPMI ELOHW EHT",0
-;WOULD LIKE TO WISH YOU
-	DB	"   UOY HSIW OT EKIL DLUOW",0
-;## A MERRY XMAS 2021 ##
-	DB	" #   1202 SAMX YRREM A   #",0
-;& a Happy New Year 2022 
-	DB	"2202 RAEY WEN YPPAH A &",0
-	DB	"     !!!  ENECS AL KCUF  !!!",0
-	db  	"      EB LLIW 2202 EPOH",0
-	DB	"   !! DORP WEN FO LLUF ",0
-	DB	"    KAINOMED SIRK DIS  ",0
-	DB	"      TSA LLIRD PMC    ",0
+	DB	"@ @ @ @ @ @ @ @ @ @ @ @ @  ",0
+	DB	"CMP DRILL AST          ",0
+	DB	"SID KRIS DEMONIAK      ",0
+	DB	"THE WHOLE IMPACT TEAM  ",0
+	DB	"WOULD LIKE TO WISH YOU  ",0
+	DB	"#   A MERRY XMAS 2021   # ",0
+	DB	"& A HAPPY NEW YEAR 2022",0
+	DB	"!!!  FUCK LA SENE  !!!     ",0
+	DB	"HOPE 2022 WILL BE       ",0
+	DB	"FULL OF NEW PRODS !!!    ",0
 	DB	#FF
 
 	Read	"Animations.asm"
@@ -907,19 +932,3 @@ XmassPic
 	list
 _endxmass
 
-;
-; Constantes - adresses de décompactage
-;
-TrainFull equ #92A0
-Musique equ TrainFull+4440
-cstPeriodeOffset EQU Musique+4			; Duration of song (number of frame)
-cstCrunchedDataOffset EQU Musique+#10		; Pointer to the array of Buffer Data offsets (14 words)
-RegVars Equ Musique+3484
-SpriteLettres equ #C000
-AdrEcr equ #A000
-TabFlocs equ AdrEcr+512
-; structure flocons = 
-; IX+0 = x
-; IX+1 = y
-; IX+2 = inc y
-; IX+3 = memo adr

@@ -7,8 +7,8 @@ SpriteLettres
 	DW	Char_SPC,Char_Exclamation,Char_SPC,Char_Candy,Char_SPC,Char_SPC,Char_Et,Char_SPC
 	DW	Char_SPC,Char_SPC,Char_SPC,Char_SPC,Char_SPC,Char_SPC,Char_SPC,Char_SPC
 	DW	Char_0,Char_1,Char_2,Char_SPC,Char_SPC,Char_SPC,Char_SPC,Char_SPC
-	DW	Char_SPC,Char_SPC,Char_SPC,Char_SPC,Char_SPC,Char_SPC,Char_SPC,Char_SPC
-	DW	Char_SPC,Char_A,Char_B,Char_C,Char_D,Char_E,Char_F,Char_G,Char_H
+	DW	Char_SPC,Char_SPC,Char_DeuxPoint,Char_SPC,Char_SPC,Char_SPC,Char_SPC,Char_SPC
+	DW	Char_Cadeau,Char_A,Char_B,Char_C,Char_D,Char_E,Char_F,Char_G,Char_H
 	DW	Char_I,Char_J,Char_K,Char_L,Char_M,Char_N,Char_O,Char_P,Char_Q
 	DW	Char_R,Char_S,Char_T,Char_U,Char_V,Char_W,Char_X,Char_Y,Char_Z
 
@@ -130,6 +130,29 @@ Char_2
 	DB	#03,#0F,#0F,#0F,#6F
 	DB	#03,#0F,#3F,#CF,#4F
 	DB	#01,#0F,#7F,#8F,#0F
+Char_DeuxPoint
+	DB	2
+	DB	#00,#00
+	DB	#00,#00
+	DB	#00,#00
+	DB	#00,#00
+	DB	#03,#00
+	DB	#17,#08
+	DB	#37,#08
+	DB	#27,#08
+	DB	#07,#08
+	DB	#03,#00
+	DB	#00,#00
+	DB	#00,#00
+	DB	#00,#00
+	DB	#03,#00
+	DB	#17,#08
+	DB	#37,#08
+	DB	#27,#08
+	DB	#07,#08
+	DB	#03,#00
+	DB	#00,#00
+	DB	#00,#00
 Char_Candy
 	DB	5
 	DB	#00,#00,#00,#00,#00
@@ -153,6 +176,29 @@ Char_Candy
 	DB	#01,#0F,#0F,#8F,#00
 	DB	#01,#0F,#7F,#8E,#00
 	DB	#00,#07,#EF,#0C,#00
+Char_Cadeau
+	DB	5
+	DB	#00,#00,#00,#00,#00
+	DB	#00,#FF,#00,#33,#00
+	DB	#11,#9B,#8F,#FF,#8F
+	DB	#11,#8C,#BB,#88,#CD
+	DB	#11,#DD,#DD,#00,#8B
+	DB	#01,#FF,#EE,#BB,#8D
+	DB	#13,#55,#77,#FF,#4D
+	DB	#04,#22,#88,#01,#01
+	DB	#0F,#1D,#07,#0E,#45
+	DB	#08,#22,#88,#02,#01
+	DB	#08,#11,#00,#02,#45
+	DB	#08,#22,#88,#02,#23
+	DB	#08,#11,#00,#02,#45
+	DB	#AA,#AA,#AA,#AA,#AB
+	DB	#DD,#55,#55,#55,#45
+	DB	#08,#22,#88,#02,#01
+	DB	#08,#11,#00,#02,#46
+	DB	#08,#22,#88,#02,#04
+	DB	#08,#11,#00,#02,#08
+	DB	#0F,#2E,#8F,#0F,#00
+	DB	#00,#00,#00,#00,#00
 Char_A
 	DB	5			; Largeur
 	DB	#00,#0F,#0F,#08,#00
