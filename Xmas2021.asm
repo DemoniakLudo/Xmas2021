@@ -896,7 +896,6 @@ XmassPaletteFadeMid
 	DB	Basic00,Basic00,Basic03,Basic00,Basic00,Basic00,Basic03,Basic03,Basic06,Basic06,Basic13,Basic00,Basic00,Basic00,Basic00,Basic00
 XmassPaletteOk
 	DB	Basic00,Basic03,Basic06,Basic09,Basic12,Basic13,Basic15,Basic16,Basic24,Basic25,Basic26,Basic00,Basic00,Basic00,Basic26,Basic00
-
 SantaPaletteFadeMid
 	DB	Basic00,Basic00,Basic03,Basic13,Basic00,Basic06,Basic06,Basic12,Basic12,Basic00,Basic01,Basic00,Basic00,Basic07,Basic01,Basic10
 SantaPaletteOk
@@ -912,42 +911,14 @@ CrtcStartScreen
 	DB	1,#30,2,#32,6,#15,7,#21,12,#30,13,0,0
 
 Message
-	DB	"@ @ @ @ @ @ @ @ @ @ @ @ @  ",0
-	DB	"CMP DRILL AST          ",0
-	DB	"SID KRIS DEMONIAK      ",0
-	DB	"THE WHOLE IMPACT TEAM  ",0
-	DB	"WOULD LIKE TO WISH YOU  ",0
-	DB	"#   A MERRY XMAS 2021   # ",0
-	DB	"& A HAPPY NEW YEAR 2022",0
-	DB	"HOPE 2022 WILL BE       ",0
-	DB	"FULL OF NEW PRODS !!!    ",0
-	DB	"& WITHOUT NEW VIRUSES    ",0
-	DB	"GREETINGS 2 ALL CPC FANS",0
-	DB	"THIS XMAS DEMO HAS BEEN",0
-	DB	"  CODED IN 2 WEEKS BY ",0
-	DB	"     DEMONIAK            ",0 
-	DB	"     GFX BY KRIS         ",0
-	DB	"  IDEAS SUPPORT : CMP  ",0
-	DB	"SPECIAL DEDICATION TO :",0
-	DB 	"ARKOS BATMAN GROUP    ",0
-	DB	"BENEDICTION CONDENSE  ",0
-	DB	"DIRTY MINDS EASTER EGG ",0
-	DB	"FUTURS GGP GPA		",0
-	DB	"LOGON SYSTEM NPS	",0
-	DB	"OVERLANDERS PRALINE	",0
-	DB	"PULPO COOROSIVE	",0
-	DB	"RESISTANCE REVIVAL	",0
-	DB	"SHINRA SML SYMBIOSIS	",0
-	DB	"TGS VANITY		",0
-
-
+	Read	"Message.asm"
 	DB	#FF
 
 	Read	"Animations.asm"
 
 	nolist
 XmassPic
-	Read	"XmassPic_zx0b.asm"
+	Read	"XmassPic_zx0.asm"
 	list
 _endxmass
 
