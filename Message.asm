@@ -1,10 +1,10 @@
-	DB	"@ @ @ @ @ @ @ @ @ @ @ @ @  ",0
+	DB	"@ @ @ @ @ @ @ @ @ @ @ ",0
 	DB	"CMP DRILL AST          ",0
 	DB	"SID KRIS DEMONIAK      ",0
 	DB	"THE WHOLE IMPACT TEAM  ",0
 	DB	"WOULD LIKE TO WISH YOU  ",0
 	DB	"#   A MERRY XMAS 2021   # ",0
-	DB	"& A HAPPY NEW YEAR 2022",0
+	DB	"&A HAPPY NEW YEAR 2022",0
 	DB	"HOPE 2022 WILL BE       ",0
 	DB	"FULL OF NEW PRODS !!!    ",0
 	DB	"& WITHOUT NEW VIRUSES   ",0

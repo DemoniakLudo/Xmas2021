@@ -60,7 +60,7 @@ TabFlocs equ AdrEcr+512				; Adresse des flocons
 	Nolist
 
 XmasSong_ZX0
-	incbin	"Fichiers\xmassong.zx0"
+	incbin	"xmassong.zx0"
 SantaPic
 	Read	"SantaPic_zx0.asm"
 Lettres_ZX0
@@ -80,11 +80,6 @@ _StartDemo
 	CALL	SendCrtc
 	LD	HL,PaletteBlack
 	CALL	SetPalette
-;	LD	HL,#A000
-;	LD	DE,#A001
-;	LD	BC,#AFFF
-;	LD	(HL),L
-;	LDIR
 
 	LD	HL,XmasSong_ZX0
 	LD	DE,Musique
@@ -95,8 +90,6 @@ _StartDemo
 	LD	DE,#0200
 	CALL	Depack
 
-;	LD	A,#C3
-;	LD	(#38),A
 	LD	HL,NewIrq
 	LD	(#39),HL
 	EI
@@ -107,14 +100,13 @@ _StartDemo
 	LD	HL,CrtcStartScreen
 	CALL	SendCrtc
 	LD	HL,XmassPaletteFadeMid
-	CALL	SetPalette
-	LD	HL,XmassPaletteOk
-	CALL	SetPalette
+	CALL	SetPalette2Times
 
 ; Calcul des adresses ecran pour affichage flocons
 	LD	DE,AdrEcr
 	LD	HL,#C000
-Loop:	LD	A,L
+CalcAdrLoop
+	LD	A,L
 	LD	(DE),A
 	INC	D
 	LD	A,H
@@ -127,7 +119,7 @@ Loop:	LD	A,L
 	ADD	HL,BC
 NextAdr
 	INC	E
-	JR	NZ,Loop
+	JR	NZ,CalcAdrLoop
 ; Initialisation des flocons
 	LD	IX,TabFlocs
 	LD	B,NbFloc
@@ -145,20 +137,17 @@ Random
 	ADD	A,E
 	LD	E,A
 	CP	96
-	JR	C,Init2
+	JR	C,InitFlocon
 	SUB	96
 	LD	E,A
-	PUSH	AF
+	INC	D
+InitFlocon
 	LD	A,L
 	AND	#1F
-	ADD	A,2
 	ADD	A,D
 	LD	D,A
-	POP	AF
-Init2
-	LD	(IX+0),A			; Position X
-	LD	A,D
-	LD	(IX+1),A			; Position Y
+	LD	(IX+0),E			; Position X
+	LD	(IX+1),D			; Position Y
 	LD	A,H
 	AND	3
 	INC	A
@@ -277,9 +266,7 @@ ClearFloc
 	LD	HL,CrtcFullScreen
 	CALL	SendCrtc
 	LD	HL,SantaPaletteFadeMid
-	CALL	SetPalette
-	LD	HL,SantaPaletteOk
-	CALL	SetPalette
+	CALL	SetPalette2Times
 ; Decompacter fonte
 	LD	HL,Lettres_ZX0
 	LD	DE,SpriteLettres
@@ -625,7 +612,7 @@ initRegVars2:
 	RET
 
 PlaySong
-	LD	B,14
+	LD	BC,#0EF4
 	LD	IX,RegVars+8
 decrunch_register:
 	CALL	getRegisterValue
@@ -716,12 +703,12 @@ endMod2:
 	SUB	B
 	LD	L,B				; Sauvegarde registre B
 	LD	DE,#F680
-	LD	B,#F4				; setup PSG register number on PPI port A
+	LD	B,C				; C=#F4 
 	OUT	(C),A				; Numero du registre
 	LD	B,D
 	OUT	(C),B
 	DW	#71ED	; out (c),0
-	LD	B,#F4				; setup register data on PPI port A
+	LD	B,C				; setup register data on PPI port A
 	OUT	(C),H				; Valeur du registre
 	LD	B,D
 	OUT	(C),E
@@ -733,8 +720,6 @@ endMod2:
 ; Routine appelee sous interruptions (300 fois par secondes)
 ;
 NewIrq
-	PUSH	AF
-	EX	AF,AF'
 	PUSH	AF
 	PUSH	BC
 	PUSH	DE
@@ -764,18 +749,20 @@ EndIrq
 	POP	DE
 	POP	BC
 	POP	AF
-	EX	AF,AF'
-	POP	AF
 	EI
 RetIrq
 	RET
 
-Mode1
-	LD	BC,#7F8D
-	JR	SetMode
+TabExecIrq
+	DW	Mode0,RetIrq,PlaySong,RetIrq,RetIrq,Mode1
+	DW	RetIrq,RetIrq,RetIrq,RetIrq,RetIrq,Retirq
 
 Mode0
 	LD	BC,#7F8C
+	JR	SetMode
+
+Mode1
+	LD	BC,#7F8D
 SetMode
 	OUT	(C),C
 	RET
@@ -790,6 +777,8 @@ SendCrtc
 	OUTI
 	JR	SendCrtc
 
+SetPalette2Times
+	CALL	SetPalette
 SetPalette
 	LD	BC,#7F10
 	LD	A,(HL)
@@ -801,7 +790,7 @@ BclPalette
 	INC	B
 	OUTI
 	INC	A
-	CP	16
+	CP	C
 	JR	NZ,BclPalette
 
 	LD	BC,#3000
@@ -886,19 +875,15 @@ AdrEcrLettre
 	DW	#4660,#4E60,#5660,#5E60
 	DW	#6660,#6E60
 
-TabExecIrq
-	DW	Mode0,RetIrq,PlaySong,RetIrq,RetIrq,Mode1
-	DW	RetIrq,RetIrq,RetIrq,RetIrq,RetIrq,Retirq
-
 PaletteBlack
 	DB	Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00
 XmassPaletteFadeMid
 	DB	Basic00,Basic00,Basic03,Basic00,Basic00,Basic00,Basic03,Basic03,Basic06,Basic06,Basic13,Basic00,Basic00,Basic00,Basic00,Basic00
-XmassPaletteOk
+;XmassPaletteOk
 	DB	Basic00,Basic03,Basic06,Basic09,Basic12,Basic13,Basic15,Basic16,Basic24,Basic25,Basic26,Basic00,Basic00,Basic00,Basic26,Basic00
 SantaPaletteFadeMid
 	DB	Basic00,Basic00,Basic03,Basic13,Basic00,Basic06,Basic06,Basic12,Basic12,Basic00,Basic01,Basic00,Basic00,Basic07,Basic01,Basic10
-SantaPaletteOk
+;SantaPaletteOk
 	DB	Basic13,Basic03,Basic06,Basic26,Basic00,Basic15,Basic16,Basic25,Basic24,Basic04,Basic07,Basic12,Basic01,Basic17,Basic14,Basic23
 
 CrtcNoScreen
