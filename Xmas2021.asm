@@ -53,7 +53,7 @@ TabFlocs equ AdrEcr+512				; Adresse des flocons
 ; IX+2 = inc y
 ; IX+3 = memo adr
 
-	ORG	#5B00
+	ORG	#5280
 
 ;	Write	direct	"xmas2021.bin"
 
@@ -61,10 +61,10 @@ TabFlocs equ AdrEcr+512				; Adresse des flocons
 
 XmasSong_ZX0
 	incbin	"xmassong.zx0"
-SantaPic
-	Read	"SantaPic_zx0.asm"
 Lettres_ZX0
 	Read	"Fonte_zx0.asm"
+SantaPic
+	Read	"SantaPic_zx0.asm"
 TrainFull_ZX0
 	Read	"TrainFull_zx0.asm"
 
@@ -85,10 +85,6 @@ _StartDemo
 	LD	DE,Musique
 	CALL	Depack
 	CALL	InitPlayer
-
-	LD	HL,SantaPic
-	LD	DE,#0200
-	CALL	Depack
 
 	LD	HL,NewIrq
 	LD	(#39),HL
@@ -254,7 +250,7 @@ ClearFloc
 	EX	AF,AF'
 	DEC	A
 	JR	NZ,ClearFloc
-; Decompacter sprtie du trin
+; Decompacter sprtie du train
 	LD	HL,TrainFull_ZX0
 	LD	DE,TrainFull
 	CALL	Depack
@@ -265,12 +261,18 @@ ClearFloc
 	CALL	SetPalette
 	LD	HL,CrtcFullScreen
 	CALL	SendCrtc
-	LD	HL,SantaPaletteFadeMid
-	CALL	SetPalette2Times
+
 ; Decompacter fonte
 	LD	HL,Lettres_ZX0
 	LD	DE,SpriteLettres
 	CALL	Depack
+; Decompacter image principale
+	LD	HL,SantaPic
+	LD	DE,#0200
+	CALL	Depack
+
+	LD	HL,SantaPaletteFadeMid
+	CALL	SetPalette2Times
 
 ; Boucle principale demo
 DemoLoop
