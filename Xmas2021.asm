@@ -133,14 +133,14 @@ NextAdr
 	LD	B,NbFloc
 	LD	DE,0
 Random
-	LD	HL,#28D9
+	LD	HL,#4BC9
 	ADD	HL,HL
 	SBC	A,A
 	AND	#83
 	XOR	L
 	LD	L,A
 	LD	(Random+1),HL			; HL = valeur pseudo aleatoire
-	AND	#1F
+	AND	#3F
 	ADD	A,2
 	ADD	A,E
 	LD	E,A
@@ -150,7 +150,7 @@ Random
 	LD	E,A
 	PUSH	AF
 	LD	A,L
-	AND	#F
+	AND	#1F
 	ADD	A,2
 	ADD	A,D
 	LD	D,A
@@ -919,16 +919,35 @@ Message
 	DB	"WOULD LIKE TO WISH YOU  ",0
 	DB	"#   A MERRY XMAS 2021   # ",0
 	DB	"& A HAPPY NEW YEAR 2022",0
-	DB	"!!!  FUCK LA SENE  !!!     ",0
 	DB	"HOPE 2022 WILL BE       ",0
 	DB	"FULL OF NEW PRODS !!!    ",0
+	DB	"& WITHOUT NEW VIRUSES    ",0
+	DB	"GREETINGS 2 ALL CPC FANS",0
+	DB	"THIS XMAS DEMO HAS BEEN",0
+	DB	"  CODED IN 2 WEEKS BY ",0
+	DB	"     DEMONIAK            ",0 
+	DB	"     GFX BY KRIS         ",0
+	DB	"  IDEAS SUPPORT : CMP  ",0
+	DB	"SPECIAL DEDICATION TO :",0
+	DB 	"ARKOS BATMAN GROUP    ",0
+	DB	"BENEDICTION CONDENSE  ",0
+	DB	"DIRTY MINDS EASTER EGG ",0
+	DB	"FUTURS GGP GPA		",0
+	DB	"LOGON SYSTEM NPS	",0
+	DB	"OVERLANDERS PRALINE	",0
+	DB	"PULPO COOROSIVE	",0
+	DB	"RESISTANCE REVIVAL	",0
+	DB	"SHINRA SML SYMBIOSIS	",0
+	DB	"TGS VANITY		",0
+
+
 	DB	#FF
 
 	Read	"Animations.asm"
 
 	nolist
 XmassPic
-	Read	"XmassPic_zx0.asm"
+	Read	"XmassPic_zx0b.asm"
 	list
 _endxmass
 
