@@ -27,15 +27,16 @@ Basic24	equ #4A
 Basic25	equ #43
 Basic26	equ #4B
 
+TpsWaitPalette	equ	#3000
 FastCopy	equ	0
 TpsWaitMessage	equ	#100			; Temps avant repassage du train
 TpsWaitBougie	equ	10			; Delai animation bougie
 TpsNextYeux	equ	15			; Delai animation yeux
 TpsWaitYeux	equ	10			; Temps entre chaque anim yeux
 
-NbFloc	Equ	100				; Nbre de flocons sur image intro
+NbFloc		Equ	100			; Nbre de flocons sur image intro
 CoulFlocon	Equ	63			; Couleur flocon (octet)
-
+TpsFlocon	equ	#200			; Temps de bouclage des flocons
 TexteSens	equ	#800			; Adresse du texte "inverse"
 
 ; Constantes - adresses de decompactage
@@ -156,7 +157,7 @@ InitFlocon
 	INC	IX
 	DJNZ	Random
 ; Affichage des flocons
-	LD	HL,#22A
+	LD	HL,TpsFlocon
 LoopDisplay
 	LD	B,#F5
 	IN	A,(C)
@@ -795,7 +796,7 @@ BclPalette
 	CP	C
 	JR	NZ,BclPalette
 
-	LD	BC,#3000
+	LD	BC,TpsWaitPalette
 WaitBC
 	DEC	BC
 	LD	A,B
