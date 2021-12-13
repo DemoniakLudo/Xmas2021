@@ -53,7 +53,7 @@ TabFlocs equ AdrEcr+512				; Adresse des flocons
 ; IX+2 = inc y
 ; IX+3 = memo adr
 
-	ORG	#5C00
+	ORG	#5B00
 
 ;	Write	direct	"xmas2021.bin"
 
