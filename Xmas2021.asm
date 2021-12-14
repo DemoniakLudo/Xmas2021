@@ -28,14 +28,13 @@ Basic25	equ #43
 Basic26	equ #4B
 
 TpsWaitPalette	equ	#3000
-FastCopy	equ	0
 TpsWaitMessage	equ	#100			; Temps avant repassage du train
 TpsWaitBougie	equ	10			; Delai animation bougie
 TpsNextYeux	equ	15			; Delai animation yeux
 TpsWaitYeux	equ	10			; Temps entre chaque anim yeux
 
 NbFloc		Equ	100			; Nbre de flocons sur image intro
-CoulFlocon	Equ	63			; Couleur flocon (octet)
+CoulFlocon	Equ	21			; Couleur flocon (octet)
 TpsFlocon	equ	#200			; Temps de bouclage des flocons
 TexteSens	equ	#800			; Adresse du texte "inverse"
 
@@ -54,9 +53,9 @@ TabFlocs equ AdrEcr+512				; Adresse des flocons
 ; IX+2 = inc y
 ; IX+3 = memo adr
 
-	ORG	#5280
+	ORG	#5000
 
-;	Write	direct	"xmas2021.bin"
+	Write	direct	"xmas2021.bin"
 
 	Nolist
 
@@ -64,10 +63,10 @@ XmasSong_ZX0
 	incbin	"xmassong.zx0"
 Lettres_ZX0
 	Read	"Fonte_zx0.asm"
-SantaPic
-	Read	"SantaPic_zx0.asm"
 TrainFull_ZX0
 	Read	"TrainFull_zx0.asm"
+SantaPic
+	Read	"SantaPic_zx0.asm"
 
 	List
 
@@ -170,11 +169,11 @@ LoopDisplay
 	LD	B,0
 DisplayFloc
 	EX	AF,AF'
+	LD	C,(IX+0)			; Position X
+	LD	L,(IX+1)			; Position Y
 	LD	A,(IX+3)
 	INC	A
-	JR	Z,NoRestore			; Rien a restaurer
-	LD	C,(IX+0)
-	LD	L,(IX+1)
+	JR	Z,EndRestore			; Rien a restaurer
 	LD	E,(HL)
 	INC	H
 	LD	D,(HL)
@@ -184,15 +183,8 @@ DisplayFloc
 	LD	A,(IX+3)
 	LD	(HL),A				; Restaurer ancienne valeur
 	EX	DE,HL
-NoRestore
-	LD	A,(IX+1)
-	ADD	A,(IX+2)
-	CP	168
-	JR	C,SetNewPosY
-	XOR	A
-SetNewPosY
-	LD	(IX+1),A			; Nouvelle position Y
-	LD	A,(IX+0)
+EndRestore
+	LD	A,C
 	INC	A
 	CP	96
 	JR	C,SetNewPosX
@@ -200,7 +192,14 @@ SetNewPosY
 SetNewPosX
 	LD	(IX+0),A			; Nouvelle position X
 	LD	C,A
-	LD	L,(IX+1)
+	LD	A,L
+	ADD	A,(IX+2)
+	CP	168
+	JR	C,SetNewPosY
+	XOR	A
+SetNewPosY
+	LD	(IX+1),A			; Nouvelle position Y
+	LD	L,A
 	LD	E,(HL)
 	INC	H
 	LD	D,(HL)
@@ -422,11 +421,8 @@ CalcPosOctet
 	JP	P,CalcPosOctet
 	LDI
 	POP	HL
-	INC	HL
-	INC	HL
-	INC	HL
-	INC	HL
-	INC	HL
+	LD	BC,5
+	ADD	HL,BC
 	JR	DrawAnim2
 
 ;
@@ -482,7 +478,8 @@ DrawLettre2
 	EX	DE,HL
 	PUSH	BC
 	LDI
-TailleLettre	LD	C,0
+TailleLettre
+	LD	C,0
 	ADD	HL,BC
 	POP	BC
 	DEC	A
@@ -547,32 +544,16 @@ DrawTrain21
 	LD	IX,AdrEcrTrain
 	LD	A,37			; 37 Lignes
 DrawTrain3
-	LD	E,(IX+0)
-	LD	D,(IX+1)
 	EX	DE,HL
+	LD	L,(IX+0)
+	LD	H,(IX+1)
 PosReel
 	LD	BC,0
 	ADD	HL,BC
 	EX	DE,HL
 DrawTrainNbCol
 	LD	C,40
-if FastCopy=1
-	EX	AF,AF'
-	LD	A,16
-	SUB	C
-	AND	15
-	ADD	A,A
-	LD	(Lp_Entry+1),A
-	EX	AF,AF'
-Lp_Entry
-	JR	Lp_Entry
-Copy_Loop
-	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI
-	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI
-	JP	PE,Copy_Loop
-else
 	LDIR
-endif
 DrawTrainAddDecal
 	LD	BC,80
 	ADD	HL,BC
