@@ -27,6 +27,8 @@ Basic24	equ #4A
 Basic25	equ #43
 Basic26	equ #4B
 
+FastCopy		equ	1
+
 TpsWaitPalette	equ	#3000
 TpsWaitMessage	equ	#100			; Temps avant repassage du train
 TpsWaitBougie	equ	10			; Delai animation bougie
@@ -57,7 +59,7 @@ TabFlocs equ AdrEcrFloc+512			; Adresse des flocons
 
 	ORG	#5000
 
-;	Write	direct	"xmas2021.bin"
+	Write	direct	"xmas2021.bin"
 
 	Nolist
 
@@ -285,28 +287,127 @@ WaitVBL
 	RRA
 	JR	NC,WaitVBL
 
-
+;
+; Debut gestion affichage etoile
+;
+WithEtoile
+	LD	A,0
+	CP	2
+	JR	NC,OldPosY
+WaitEndVbl
+	IN	A,(C)
+	RRA
+	JR	C,WaitEndVbl
+	JP	WithBougie
 OldPosY
 	LD	A,#FF
 	INC	A
 	JR	Z,EndRestoreEcr
 	DEC	A
-	LD	C,A
+; Restore l'ecran sous l'etoile
+	LD	DE,SauvBuff
+	EXX
+	LD	C,A				; Y
+	LD	D,TailleSpY
+	LD	HL,AdrEcr
+	LD	B,0
+	ADD	HL,BC
+	ADD	HL,BC
+RestoreEcrX
+	LD	A,(HL)
+	EX	AF,AF'
+	INC	HL
+	LD	A,(HL)
+	INC	HL
+	EXX
+	LD	H,A
+	EX	AF,AF'
+	LD	L,A
 OldPosX
-	LD	A,0
-	CALL	RestoreEcr
+	LD	BC,0
+	ADD	HL,BC
+	EX	DE,HL
+	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI	; 8 LDI
+	EX	DE,HL
+	EXX
+	INC	C
+	DEC	D
+	JR	NZ,RestoreEcrX
 EndRestoreEcr
 	LD	A,(PosY+1)
 	LD	(OldPosY+1),A
 	LD	C,A
 	LD	A,(PosX+1)
 	LD	(OldPosX+1),A
-	CALL	SauvSprite
+; Sauvegarde l'ecran sous l'etoile
+	LD	(AddSauvX+1),A
+	LD	DE,SauvBuff
+	LD	A,C
+	EXX
+	LD	C,A				; Y
+	LD	D,TailleSpY
+	LD	HL,AdrEcr
+	LD	B,0
+	ADD	HL,BC
+	ADD	HL,BC
+SauvSpriteX
+	LD	A,(HL)
+	EX	AF,AF'
+	INC	HL
+	LD	A,(HL)
+	INC	HL
+	EXX
+	LD	H,A
+	EX	AF,AF'
+	LD	L,A
+AddSauvX
+	LD	BC,0
+	ADD	HL,BC
+	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI	; 8 LDI
+	EXX
+	INC	C
+	DEC	D
+	JR	NZ,SauvSpriteX
 PosX
-	LD	A,30
+	LD	A,44
+; Dessine l'etoile
+	LD	(AddSpriteX+1),A
+	LD	DE,SpriteEtoile
+	EXX
 PosY
-	LD	C,44
-	CALL	DrawSprite
+	LD	C,#CF
+	LD	D,TailleSpY
+	LD	HL,AdrEcr
+	LD	B,0
+	ADD	HL,BC
+	ADD	HL,BC
+DrawSpriteX
+	LD	A,(HL)
+	EX	AF,AF'
+	INC	HL
+	LD	A,(HL)
+	INC	HL
+	EXX
+	LD	H,A
+	EX	AF,AF'
+	LD	L,A
+AddSpriteX
+	LD	BC,0
+	ADD	HL,BC
+	EX	DE,HL
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	EX	DE,HL
+	EXX
+	INC	C
+	DEC	D
+	JR	NZ,DrawSpriteX
 	LD	HL,PosX+1
 	LD	A,(HL)
 IncX
@@ -323,7 +424,7 @@ SwapPosXSp
 SetNewPosXSp
 	LD	(HL),A
 	LD	HL,TabCos
-	PosCos
+PosCos
 	LD	BC,0
 	ADD	HL,BC
 	LD	A,(PosCos+1)
@@ -332,6 +433,9 @@ SetNewPosXSp
 	LD	(PosCos+1),A
 	LD	A,(HL)
 	LD	(Posy+1),A
+;
+; Fin gestion affichage etoile
+;
 
 ; Anim bougie
 WithBougie
@@ -411,6 +515,10 @@ WaitMessage
 	JP	NZ,DemoLoop
 	LD	HL,TpsWaitMessage
 	LD	(WaitMessage+1),HL
+; Etoile On
+	LD	A,(WithEtoile+1)
+	INC	A
+	LD	(WithEtoile+1),A
 ; Changement message
 	LD	HL,(PosMessage+1)
 	LD	A,(HL)
@@ -448,113 +556,6 @@ NextPos
 	LD	(PosxTrain+1),A
 	JP	DemoLoop
 
-; Dessine l'etoile
-; A = posX, C = posY
-DrawSprite
-	LD	(AddSpriteX+1),A
-	LD	DE,SpriteEtoile
-	LD	A,C
-	EXX
-	LD	C,A				; Y
-	LD	D,TailleSpY
-	LD	HL,AdrEcr
-	LD	B,0
-	ADD	HL,BC
-	ADD	HL,BC
-DrawSpriteX
-	LD	A,(HL)
-	EX	AF,AF'
-	INC	HL
-	LD	A,(HL)
-	INC	HL
-	EXX
-	LD	H,A
-	EX	AF,AF'
-	LD	L,A
-AddSpriteX
-	LD	BC,0
-	ADD	HL,BC
-	EX	DE,HL
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	EX	DE,HL
-	EXX
-	INC	C
-	DEC	D
-	JR	NZ,DrawSpriteX
-	RET
-
-; Sauvegarde l'ecran sous l'etoile
-SauvSprite
-	LD	(AddSauvX+1),A
-	LD	DE,SauvBuff
-	LD	A,C
-	EXX
-	LD	C,A				; Y
-	LD	D,TailleSpY
-	LD	HL,AdrEcr
-	LD	B,0
-	ADD	HL,BC
-	ADD	HL,BC
-SauvSpriteX
-	LD	A,(HL)
-	EX	AF,AF'
-	INC	HL
-	LD	A,(HL)
-	INC	HL
-	EXX
-	LD	H,A
-	EX	AF,AF'
-	LD	L,A
-AddSauvX
-	LD	BC,0
-	ADD	HL,BC
-	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI	; 8 LDI
-	EXX
-	INC	C
-	DEC	D
-	JR	NZ,SauvSpriteX
-	RET
-
-; Restore l'ecran sous l'etoile
-RestoreEcr
-	LD	(AddRestoreX+1),A
-	LD	DE,SauvBuff
-	LD	A,C
-	EXX
-	LD	C,A				; Y
-	LD	D,TailleSpY
-	LD	HL,AdrEcr
-	LD	B,0
-	ADD	HL,BC
-	ADD	HL,BC
-RestoreEcrX
-	LD	A,(HL)
-	EX	AF,AF'
-	INC	HL
-	LD	A,(HL)
-	INC	HL
-	EXX
-	LD	H,A
-	EX	AF,AF'
-	LD	L,A
-AddRestoreX
-	LD	BC,0
-	ADD	HL,BC
-	EX	DE,HL
-	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI	; 8 LDI
-	EX	DE,HL
-	EXX
-	INC	C
-	DEC	D
-	JR	NZ,RestoreEcrX
-	RET
 
 ;
 ; Affiche petite animation (yeux ou bougie)
@@ -709,7 +710,23 @@ PosReel
 	EX	DE,HL
 DrawTrainNbCol
 	LD	C,40
+if FastCopy=1
+	EX	AF,AF'
+	LD	A,16
+	SUB	C
+	AND	15
+	ADD	A,A
+	LD	(Lp_Entry+1),A
+	EX	AF,AF'
+Lp_Entry
+	JR	Lp_Entry
+Copy_Loop
+	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI
+	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI
+	JP	PE,Copy_Loop
+else
 	LDIR
+endif
 DrawTrainAddDecal
 	LD	BC,80
 	ADD	HL,BC
