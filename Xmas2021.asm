@@ -328,7 +328,7 @@ SetNewPosXSp
 	ADD	HL,BC
 	LD	A,(PosCos+1)
 	INC	A
-	AND	#7F
+	AND	#3F
 	LD	(PosCos+1),A
 	LD	A,(HL)
 	LD	(Posy+1),A
@@ -475,7 +475,14 @@ AddSpriteX
 	LD	BC,0
 	ADD	HL,BC
 	EX	DE,HL
-	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI	; 8 LDI
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
 	EX	DE,HL
 	EXX
 	INC	C
@@ -1072,14 +1079,10 @@ SpriteEtoile
 	Read	"EtoileSpt.asm"
 
 TabCos
-	DB	#BE,#B9,#B4,#AF,#AA,#A5,#A1,#9C,#98,#93,#8F,#8B
-	DB	#87,#83,#7F,#7B,#77,#73,#6F,#6C,#68,#65,#61,#5E,#5B,#58,#55,#52
-	DB	#4F,#4C,#49,#47,#44,#42,#3F,#3D,#3B,#39,#37,#35,#33,#31,#2F,#2D
-	DB	#2C,#2A,#29,#27,#26,#25,#24,#23,#22,#21,#20,#1F,#1F,#1E,#1E,#1D
-	DB	#1D,#1D,#1D,#1D,#1D,#1D,#1D,#1D,#1D,#1E,#1E,#1F,#1F,#20,#21,#22
-	DB	#23,#24,#25,#26,#27,#29,#2A,#2C,#2D,#2F,#31,#33,#35,#37,#39,#3B
-	DB	#3D,#3F,#42,#44,#47,#49,#4C,#4F,#52,#55,#58,#5B,#5E,#61,#65,#68
-	DB	#6C,#6F,#73,#77,#7B,#7F,#83,#87,#8B,#8F,#93,#98,#9C,#A1,#A5,#AA,#AF,#B4,#B9,#BE
+	DB	#CF,#C5,#BC,#B2,#A9,#A0,#98,#90,#88,#80,#79,#72
+	DB	#6C,#65,#5F,#5A,#54,#50,#4B,#47,#43,#3F,#3C,#38,#36,#33,#31,#30
+	DB	#2E,#2D,#2C,#2C,#2C,#2C,#2C,#2D,#2E,#2F,#31,#33,#36,#38,#3B,#3F
+	DB	#43,#47,#4B,#4F,#54,#5A,#5F,#65,#6B,#72,#79,#80,#88,#8F,#98,#A0,#A9,#B2,#BC,#C5
 
 SauvBuff
 	DS	300
