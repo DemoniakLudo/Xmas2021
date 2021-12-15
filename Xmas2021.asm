@@ -1,3 +1,7 @@
+	ORG	#3D00
+
+;	Write	direct	"xmas2021.bin"
+
 ; Couleurs Gate-Array
 Basic00	equ #54
 Basic01	equ #44
@@ -41,7 +45,7 @@ TpsDead		equ	#210			; Temps affichage image DEAD
 TpsFlocon	equ	#200			; Temps de bouclage des flocons
 TexteSens	equ	#800			; Adresse du texte "inverse"
 
-TailleSpY	Equ	23
+TailleSpY	Equ	21
 
 ; Constantes - adresses de decompactage
 TrainFull equ #92A0				; Adresse gros sprite train
@@ -57,10 +61,6 @@ TabFlocs equ AdrEcrFloc+512			; Adresse des flocons
 ; IX+1 = y
 ; IX+2 = inc y
 ; IX+3 = memo adr
-
-	ORG	#3F80
-
-	Write	direct	"xmas2021.bin"
 
 	Nolist
 
@@ -81,10 +81,8 @@ SantaPic
 _StartDemo
 	DI
 	LD	SP,#200
-	LD	HL,CrtcNoScreen
-	CALL	SendCrtc
-	LD	HL,PaletteBlack
-	CALL	SetPalette
+	LD	A,Basic01
+	CALL	SetAllSamePalette
 
 	LD	HL,XmasSong_ZX0
 	LD	DE,Musique
@@ -94,13 +92,17 @@ _StartDemo
 	LD	HL,NewIrq
 	LD	(#39),HL
 	EI
-
+;
+; Image Squelette Impact
+;
 	LD	HL,DeadXmas
 	LD	DE,#C000
 	CALL	Depack
 	LD	HL,CrtcDeadScreen
 	CALL	SendCrtc
-	LD	HL,DeadPalette
+	LD	HL,PaletteSkullFadeMid
+	CALL	SetPalette
+	LD	HL,PaletteSkull
 	CALL	SetPalette
 
 	LD	HL,TpsDead
@@ -116,15 +118,19 @@ LoopDead
 	OR	L
 	JR	NZ,LoopDead
 
-	LD	HL,CrtcNoScreen
-	CALL	SendCrtc
-
+	LD	HL,PaletteSkullFadeMid
+	CALL	SetPalette
+	LD	A,Basic00
+	CALL	SetAllSamePalette
+;
+; Image Xmas
+;
 	LD	HL,XmassPic
 	LD	DE,#C000
 	CALL	Depack
 	LD	HL,CrtcStartScreen
 	CALL	SendCrtc
-	LD	HL,XmassPaletteFadeMid
+	LD	HL,PaletteXmassFadeMid
 	CALL	SetPalette2Times
 
 ; Calcul des adresses ecran pour affichage flocons
@@ -281,10 +287,10 @@ ClearFloc
 	JR	NZ,ClearFloc
 
 ; Fade palette
-	LD	HL,XmassPaletteFadeMid
+	LD	HL,PaletteXmassFadeMid
 	CALL	SetPalette
-	LD	HL,PaletteBlack
-	CALL	SetPalette
+	LD	A,Basic00
+	CALL	SetAllSamePalette
 	LD	HL,CrtcFullScreen
 	CALL	SendCrtc
 
@@ -304,7 +310,7 @@ ClearFloc
 	LD	DE,#0200
 	CALL	Depack
 
-	LD	HL,SantaPaletteFadeMid
+	LD	HL,PaletteSantaFadeMid
 	CALL	SetPalette2Times
 
 ; Boucle principale demo
@@ -328,6 +334,7 @@ WaitEndVbl
 	JP	WithBougie
 OldPosY
 	LD	A,#FF
+	LD	B,0
 	INC	A
 	JR	Z,PosX
 	DEC	A
@@ -351,17 +358,16 @@ RestoreEcrX
 	EX	AF,AF'
 	LD	L,A
 OldPosX
-	LD	BC,0
+	LD	C,0
 	ADD	HL,BC
 	EX	DE,HL
-	LDI:INC	HL:INC	HL
-	LDI:INC	HL:INC	HL
-	LDI:INC	HL:INC	HL
-	LDI:INC	HL:INC	HL
-	LDI:INC	HL:INC	HL
-	LDI:INC	HL:INC	HL
-	LDI:INC	HL:INC	HL
-	LDI:INC	HL:INC	HL
+	LD	C,3
+	LD	A,(HL):LD	(DE),A:INC	DE:ADD	HL,BC
+	LD	A,(HL):LD	(DE),A:INC	DE:ADD	HL,BC
+	LD	A,(HL):LD	(DE),A:INC	DE:ADD	HL,BC
+	LD	A,(HL):LD	(DE),A:INC	DE:ADD	HL,BC
+	LD	A,(HL):LD	(DE),A:INC	DE:ADD	HL,BC
+	LD	A,(HL):LD	(DE),A:ADD	HL,BC
 	EX	DE,HL
 	EXX
 	DJNZ	RestoreEcrX
@@ -381,36 +387,33 @@ PosY
 	ADD	HL,BC
 	LD	B,TailleSpY
 DrawSpriteX
-	LD	A,(HL)
+	LD	A,(HL)				; Poids faible adresse
 	EX	AF,AF'
 	INC	HL
-	LD	A,(HL)
+	LD	A,(HL)				; Poids fort adresse
 	INC	HL
 	EXX
 	LD	H,A
 	EX	AF,AF'
-	LD	L,A
+	LD	L,A				; HL = adresse ecran
 AddSpriteX
-	LD	BC,0
-	ADD	HL,BC
-	EX	DE,HL
+	LD	C,0
+	ADD	HL,BC				; Adresse ecran + posx
+	EX	DE,HL				; DE=adresse ecran HL=adresse sprite
 	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
 	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
 	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
 	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
 	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	EX	DE,HL
+	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A
+	EX	DE,HL				; DE=adresse sprite
 	EXX
 	DJNZ	DrawSpriteX
 	LD	HL,PosX+1
 	LD	A,(HL)
 IncX
 	ADD	A,1
-	CP	#FF
-	JR	Z,SwapPosXSp
+	JP	M,SwapPosXSp
 	CP	89
 	JR	C,SetNewPosXSp
 SwapPosXSp
@@ -433,7 +436,6 @@ PosCos
 ;
 ; Fin gestion affichage etoile
 ;
-
 ; Anim bougie
 WithBougie
 	LD	A,TpsWaitBougie
@@ -525,7 +527,7 @@ PosReelMessage
 	LD	HL,Message
 	INC	HL
 	LD	A,(HL)
-	CP	#FF
+	INC	A
 	JR	NZ,CopyInverse
 	LD	HL,Message
 	LD	(PosReelMessage+1),HL
@@ -640,9 +642,7 @@ TailleLettre
 	JR	NZ,DrawLettre2
 	RET
 
-;
 ; Affichage du train (A = posx du train)
-;
 DrawTrain
 	LD	E,A			; E = X
 ; Calcul decalage dans le sprite
@@ -707,7 +707,6 @@ PosReel
 	EX	DE,HL
 DrawTrainNbCol
 	LD	C,40
-if FastCopy=1
 	EX	AF,AF'
 	LD	A,16
 	SUB	C
@@ -718,12 +717,8 @@ if FastCopy=1
 Lp_Entry
 	JR	Lp_Entry
 Copy_Loop
-	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI
-	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI
+	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI
 	JP	PE,Copy_Loop
-else
-	LDIR
-endif
 DrawTrainAddDecal
 	LD	BC,80
 	ADD	HL,BC
@@ -931,6 +926,15 @@ SendCrtc
 	OUTI
 	JR	SendCrtc
 
+SetAllSamePalette
+	LD	BC,#7F10
+SetAllLoop
+	OUT	(C),C
+	OUT	(C),A
+	DEC	C
+	JP	P,SetAllLoop
+	JR	WaitBCPalette
+
 SetPalette2Times
 	CALL	SetPalette
 SetPalette
@@ -947,12 +951,13 @@ BclPalette
 	CP	C
 	JR	NZ,BclPalette
 
+WaitBCPalette
 	LD	BC,TpsWaitPalette
-WaitBC
+WaitBCLoop
 	DEC	BC
 	LD	A,B
 	OR	C
-	JR	NZ,WaitBC
+	JR	NZ,WaitBCLoop
 	RET
 
 ;
@@ -1029,23 +1034,21 @@ AdrEcrLettre
 	DW	#4660,#4E60,#5660,#5E60
 	DW	#6660,#6E60
 
-DeadPalette
-	DB	#54,#4B,#40,#4C,#5E,#47,#5C,#43,#44,#58,#45,#56,#4F,#4E,#59,#45,#54,#8C
-PaletteBlack
-	DB	Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00
-XmassPaletteFadeMid
+PaletteSkull
+	DB	Basic14,Basic00,Basic26,Basic06,Basic13,Basic16,Basic23,Basic03,Basic01,Basic04,Basic10,Basic07,Basic09,Basic22,Basic12,Basic00
+PaletteSkullFadeMid
+	DB	Basic01,Basic00,Basic13,Basic03,Basic00,Basic06,Basic02,Basic00,Basic00,Basic00,Basic00,Basic04,Basic00,Basic09,Basic00,Basic00
+PaletteXmassFadeMid
 	DB	Basic00,Basic00,Basic03,Basic00,Basic00,Basic00,Basic03,Basic03,Basic06,Basic06,Basic13,Basic00,Basic00,Basic00,Basic00,Basic00
 ;XmassPaletteOk
 	DB	Basic00,Basic03,Basic06,Basic09,Basic12,Basic13,Basic15,Basic16,Basic24,Basic25,Basic26,Basic00,Basic00,Basic00,Basic26,Basic00
-SantaPaletteFadeMid
+PaletteSantaFadeMid
 	DB	Basic00,Basic00,Basic03,Basic13,Basic00,Basic06,Basic06,Basic12,Basic12,Basic00,Basic01,Basic00,Basic00,Basic07,Basic01,Basic10
 ;SantaPaletteOk
 	DB	Basic13,Basic03,Basic06,Basic26,Basic00,Basic15,Basic16,Basic25,Basic24,Basic04,Basic07,Basic12,Basic01,Basic17,Basic14,Basic23
 
-CrtcNoScreen
-	DB	6,0,7,#21,0
 CrtcDeadScreen
-	DB	1,#1C,2,#28,6,#22,7,#23,12,#30,13,0,0
+	DB	1,#19,2,#26,6,#22,7,#23,12,#30,13,0,0
 CrtcStartScreen
 	DB	1,#30,2,#32,6,#15,7,#21,0
 CrtcFullScreen
