@@ -1,6 +1,6 @@
 	ORG	#3D00
 
-;	Write	direct	"xmas2021.bin"
+	Write	direct	"xmas2021.bin"
 
 ; Couleurs Gate-Array
 Basic00	equ #54
@@ -31,7 +31,9 @@ Basic24	equ #4A
 Basic25	equ #43
 Basic26	equ #4B
 
-FastCopy		equ	1
+TestRndFloc	equ	0
+
+SeedRandom	equ	#4BF7
 
 TpsWaitPalette	equ	#3000
 TpsWaitMessage	equ	#100			; Temps avant repassage du train
@@ -89,6 +91,9 @@ _StartDemo
 	CALL	Depack
 	CALL	InitPlayer
 
+	LD	HL,CrtcDeadScreen
+	CALL	SendCrtc
+
 	LD	HL,NewIrq
 	LD	(#39),HL
 	EI
@@ -98,8 +103,6 @@ _StartDemo
 	LD	HL,DeadXmas
 	LD	DE,#C000
 	CALL	Depack
-	LD	HL,CrtcDeadScreen
-	CALL	SendCrtc
 	LD	HL,PaletteSkullFadeMid
 	CALL	SetPalette
 	LD	HL,PaletteSkull
@@ -156,7 +159,7 @@ NextAdr
 	LD	B,NbFloc
 	LD	DE,0
 Random
-	LD	HL,#4BC9
+	LD	HL,SeedRandom
 	ADD	HL,HL
 	SBC	A,A
 	AND	#83
@@ -164,12 +167,11 @@ Random
 	LD	L,A
 	LD	(Random+1),HL			; HL = valeur pseudo aleatoire
 	AND	#3F
-	ADD	A,2
+	INC	A
 	ADD	A,E
 	LD	E,A
-	CP	96
-	JR	C,InitFlocon
 	SUB	96
+	JR	C,InitFlocon
 	LD	E,A
 	INC	D
 InitFlocon
@@ -260,6 +262,11 @@ NoFloc
 	LD	A,H
 	OR	L
 	JR	NZ,LoopDisplay
+
+if TestRndFloc=1
+RndFloc	Jr	RndFloc
+endif
+
 ; Effacer les flocons avant le "palette fade"
 	LD	HL,AdrEcrFloc
 	LD	IX,TabFlocs
@@ -315,17 +322,13 @@ ClearFloc
 
 ; Boucle principale demo
 DemoLoop
-	LD	B,#F5
-WaitVBL
-	IN	A,(C)
-	RRA
-	JR	NC,WaitVBL
+	CALL	WaitVBL
 ;
 ; Debut gestion affichage etoile
 ;
 WithEtoile
 	LD	A,0
-	CP	2
+	CP	3
 	JR	NC,OldPosY
 WaitEndVbl
 	IN	A,(C)
@@ -414,7 +417,7 @@ AddSpriteX
 IncX
 	ADD	A,1
 	JP	M,SwapPosXSp
-	CP	89
+	CP	91
 	JR	C,SetNewPosXSp
 SwapPosXSp
 	LD	A,(IncX+1)
@@ -926,7 +929,19 @@ SendCrtc
 	OUTI
 	JR	SendCrtc
 
+
+WaitVBL
+	LD	B,#F5
+WaitVBL2
+	IN	A,(C)
+	RRA
+	JR	NC,WaitVBL2
+	RET
+
 SetAllSamePalette
+	EX	AF,AF'
+	CALL	WaitVBL
+	EX	AF,AF'
 	LD	BC,#7F10
 SetAllLoop
 	OUT	(C),C
@@ -938,6 +953,7 @@ SetAllLoop
 SetPalette2Times
 	CALL	SetPalette
 SetPalette
+	CALL	WaitVBL
 	LD	BC,#7F10
 	LD	A,(HL)
 	OUT	(C),C
@@ -1062,7 +1078,6 @@ Message
 
 	nolist
 
-
 AdrEcr
 	DW	#0200,#0A00,#1200,#1A00,#2200,#2A00,#3200,#3A00
 	DW	#0260,#0A60,#1260,#1A60,#2260,#2A60,#3260,#3A60
@@ -1105,6 +1120,7 @@ TabCos
 
 XmassPic
 	Read	"XmassPic_zx0.asm"
+
 	list
 _endxmass
 
