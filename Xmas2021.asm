@@ -37,6 +37,7 @@ TpsWaitYeux	equ	10			; Temps entre chaque anim yeux
 
 NbFloc		Equ	100			; Nbre de flocons sur image intro
 CoulFlocon	Equ	21			; Couleur flocon (octet)
+TpsDead		equ	#210			; Temps affichage image DEAD
 TpsFlocon	equ	#200			; Temps de bouclage des flocons
 TexteSens	equ	#800			; Adresse du texte "inverse"
 
@@ -57,12 +58,14 @@ TabFlocs equ AdrEcrFloc+512			; Adresse des flocons
 ; IX+2 = inc y
 ; IX+3 = memo adr
 
-	ORG	#5000
+	ORG	#3F80
 
 	Write	direct	"xmas2021.bin"
 
 	Nolist
 
+DeadXmas
+	read	"DeadPic_zx0.asm"
 XmasSong_ZX0
 	incbin	"xmassong.zx0"
 Lettres_ZX0
@@ -77,8 +80,6 @@ SantaPic
 	RUN	$
 _StartDemo
 	DI
-	LD	BC,#7F8C
-	OUT	(C),C
 	LD	SP,#200
 	LD	HL,CrtcNoScreen
 	CALL	SendCrtc
@@ -93,6 +94,30 @@ _StartDemo
 	LD	HL,NewIrq
 	LD	(#39),HL
 	EI
+
+	LD	HL,DeadXmas
+	LD	DE,#C000
+	CALL	Depack
+	LD	HL,CrtcDeadScreen
+	CALL	SendCrtc
+	LD	HL,DeadPalette
+	CALL	SetPalette
+
+	LD	HL,TpsDead
+LoopDead
+	LD	B,#F5
+	IN	A,(C)
+	RRA
+	JR	NC,LoopDead
+	HALT
+	HALT
+	DEC	HL
+	LD	A,H
+	OR	L
+	JR	NZ,LoopDead
+
+	LD	HL,CrtcNoScreen
+	CALL	SendCrtc
 
 	LD	HL,XmassPic
 	LD	DE,#C000
@@ -263,6 +288,9 @@ ClearFloc
 	LD	HL,CrtcFullScreen
 	CALL	SendCrtc
 
+	LD	HL,Mode1
+	LD	(TabExecIrq+10),HL
+
 ; Decompacter sprtie du train
 	LD	HL,TrainFull_ZX0
 	LD	DE,TrainFull
@@ -286,7 +314,6 @@ WaitVBL
 	IN	A,(C)
 	RRA
 	JR	NC,WaitVBL
-
 ;
 ; Debut gestion affichage etoile
 ;
@@ -302,17 +329,17 @@ WaitEndVbl
 OldPosY
 	LD	A,#FF
 	INC	A
-	JR	Z,EndRestoreEcr
+	JR	Z,PosX
 	DEC	A
 ; Restore l'ecran sous l'etoile
-	LD	DE,SauvBuff
+	LD	DE,SpriteEtoile
 	EXX
 	LD	C,A				; Y
-	LD	D,TailleSpY
 	LD	HL,AdrEcr
 	LD	B,0
 	ADD	HL,BC
 	ADD	HL,BC
+	LD	B,TailleSpY
 RestoreEcrX
 	LD	A,(HL)
 	EX	AF,AF'
@@ -327,60 +354,32 @@ OldPosX
 	LD	BC,0
 	ADD	HL,BC
 	EX	DE,HL
-	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI	; 8 LDI
+	LDI:INC	HL:INC	HL
+	LDI:INC	HL:INC	HL
+	LDI:INC	HL:INC	HL
+	LDI:INC	HL:INC	HL
+	LDI:INC	HL:INC	HL
+	LDI:INC	HL:INC	HL
+	LDI:INC	HL:INC	HL
+	LDI:INC	HL:INC	HL
 	EX	DE,HL
 	EXX
-	INC	C
-	DEC	D
-	JR	NZ,RestoreEcrX
-EndRestoreEcr
-	LD	A,(PosY+1)
-	LD	(OldPosY+1),A
-	LD	C,A
-	LD	A,(PosX+1)
-	LD	(OldPosX+1),A
-; Sauvegarde l'ecran sous l'etoile
-	LD	(AddSauvX+1),A
-	LD	DE,SauvBuff
-	LD	A,C
-	EXX
-	LD	C,A				; Y
-	LD	D,TailleSpY
-	LD	HL,AdrEcr
-	LD	B,0
-	ADD	HL,BC
-	ADD	HL,BC
-SauvSpriteX
-	LD	A,(HL)
-	EX	AF,AF'
-	INC	HL
-	LD	A,(HL)
-	INC	HL
-	EXX
-	LD	H,A
-	EX	AF,AF'
-	LD	L,A
-AddSauvX
-	LD	BC,0
-	ADD	HL,BC
-	LDI:LDI:LDI:LDI:LDI:LDI:LDI:LDI	; 8 LDI
-	EXX
-	INC	C
-	DEC	D
-	JR	NZ,SauvSpriteX
+	DJNZ	RestoreEcrX
+; Sauvegarde l'ecran sous l'etoile et dessine l'etoile
 PosX
 	LD	A,44
-; Dessine l'etoile
+	LD	(OldPosX+1),A
 	LD	(AddSpriteX+1),A
 	LD	DE,SpriteEtoile
 	EXX
 PosY
-	LD	C,#CF
-	LD	D,TailleSpY
+	LD	BC,#CF
+	LD	A,C
+	LD	(OldPosY+1),A
 	LD	HL,AdrEcr
-	LD	B,0
 	ADD	HL,BC
 	ADD	HL,BC
+	LD	B,TailleSpY
 DrawSpriteX
 	LD	A,(HL)
 	EX	AF,AF'
@@ -395,19 +394,17 @@ AddSpriteX
 	LD	BC,0
 	ADD	HL,BC
 	EX	DE,HL
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
-	LD	A,(DE):AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
+	LD	A,(DE):LD	(HL),A:INC	HL:AND	(HL):INC	HL:OR	(HL):INC	HL:LD	(DE),A:INC	DE
 	EX	DE,HL
 	EXX
-	INC	C
-	DEC	D
-	JR	NZ,DrawSpriteX
+	DJNZ	DrawSpriteX
 	LD	HL,PosX+1
 	LD	A,(HL)
 IncX
@@ -911,7 +908,7 @@ RetIrq
 	RET
 
 TabExecIrq
-	DW	Mode0,RetIrq,PlaySong,RetIrq,RetIrq,Mode1
+	DW	Mode0,RetIrq,PlaySong,RetIrq,RetIrq,RetIrq
 	DW	RetIrq,RetIrq,RetIrq,RetIrq,RetIrq,Retirq
 
 Mode0
@@ -1032,6 +1029,8 @@ AdrEcrLettre
 	DW	#4660,#4E60,#5660,#5E60
 	DW	#6660,#6E60
 
+DeadPalette
+	DB	#54,#4B,#40,#4C,#5E,#47,#5C,#43,#44,#58,#45,#56,#4F,#4E,#59,#45,#54,#8C
 PaletteBlack
 	DB	Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00,Basic00
 XmassPaletteFadeMid
@@ -1044,13 +1043,13 @@ SantaPaletteFadeMid
 	DB	Basic13,Basic03,Basic06,Basic26,Basic00,Basic15,Basic16,Basic25,Basic24,Basic04,Basic07,Basic12,Basic01,Basic17,Basic14,Basic23
 
 CrtcNoScreen
-	DB	6,0,7,#21,0				; Ecran "invisible" (R6=0)
-
-CrtcFullScreen
-	DB	1,#30,2,#32,6,#22,7,#23,12,#0D,13,0,0	; Ecran "Overscan" (32ko)
-
+	DB	6,0,7,#21,0
+CrtcDeadScreen
+	DB	1,#1C,2,#28,6,#22,7,#23,12,#30,13,0,0
 CrtcStartScreen
-	DB	1,#30,2,#32,6,#15,7,#21,12,#30,13,0,0
+	DB	1,#30,2,#32,6,#15,7,#21,0
+CrtcFullScreen
+	DB	6,#22,7,#23,12,#0D,13,0,0
 
 Message
 	Read	"Message.asm"
@@ -1100,9 +1099,6 @@ TabCos
 	DB	#6C,#65,#5F,#5A,#54,#50,#4B,#47,#43,#3F,#3C,#38,#36,#33,#31,#30
 	DB	#2E,#2D,#2C,#2C,#2C,#2C,#2C,#2D,#2E,#2F,#31,#33,#36,#38,#3B,#3F
 	DB	#43,#47,#4B,#4F,#54,#5A,#5F,#65,#6B,#72,#79,#80,#88,#8F,#98,#A0,#A9,#B2,#BC,#C5
-
-SauvBuff
-	DS	300
 
 XmassPic
 	Read	"XmassPic_zx0.asm"
